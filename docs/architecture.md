@@ -8,9 +8,9 @@ The application is a CLI-based personal finance manager. The system is designed 
 
 ### 1. CLI Layer
 
-* **Location:** `cmd/main.go`
-* **Responsibility:** Entry point, command parsing, calling appropriate model/services.
-* Planned to use Cobra for subcommands: `add`, `import`, `report`, `budget`, `search`.
+* **Location:** `internal/cli/`
+* **Entry Point:** `cmd/main.go`
+* **Responsibility:** Command parsing using Cobra, input validation, and terminal output formatting.
 
 ### 2. Data Layer
 

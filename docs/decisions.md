@@ -42,3 +42,8 @@
 * **Reason:** Simple yet flexible auto-categorization engine
 * **Decision:** Plan TUI using BubbleTea
 * **Reason:** Rich terminal UI for browsing and reporting transactions
+
+## 7. CLI Package Separation
+
+* **Decision:** Move Cobra command logic from `cmd/` to `internal/cli/`.
+* **Reason:** Keeps the main entry point clean and allows the CLI logic to be tested by injecting a mock or test database via an exported `SetDatabase` function.

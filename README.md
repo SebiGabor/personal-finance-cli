@@ -24,6 +24,10 @@ personal-finance-cli/
 │   └── main.go
 │
 ├── internal/
+│   ├── cli/
+│   │   ├── add.go
+│   │   ├── list.go
+│   │   └── root.go
 │   ├── db/
 │   │   ├── db.go
 │   │   └── migrations/
@@ -39,6 +43,7 @@ personal-finance-cli/
     ├── testdb.go
     ├── transaction_test.go
     ├── budget_test.go
+    ├── cli_test.go
     └── category_rule_test.go
 ```
 
