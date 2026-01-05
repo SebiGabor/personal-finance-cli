@@ -47,3 +47,8 @@
 
 * **Decision:** Move Cobra command logic from `cmd/` to `internal/cli/`.
 * **Reason:** Keeps the main entry point clean and allows the CLI logic to be tested by injecting a mock or test database via an exported `SetDatabase` function.
+
+## 8. Transaction Search and Filter
+
+* **Decision:** Implement search using the SQL `LIKE` operator within the models layer.
+* **Reason:** Keeping the filtering logic in SQL is more efficient than fetching all records and filtering in Go. It fulfills the user story for searching and filtering with minimal complexity.
