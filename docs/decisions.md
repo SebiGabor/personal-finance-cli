@@ -52,3 +52,9 @@
 
 * **Decision:** Implement search using the SQL `LIKE` operator within the models layer.
 * **Reason:** Keeping the filtering logic in SQL is more efficient than fetching all records and filtering in Go. It fulfills the user story for searching and filtering with minimal complexity.
+
+## 9. CSV Import Strategy
+
+* **Decision:** Use Go's standard `encoding/csv` library.
+* **Format:** Enforce a simple default CSV structure (`Date,Description,Amount,Category`) for the initial version.
+* **Reason:** Provides immediate value with minimal dependencies. Allows users to bulk-import data by converting their bank statements to this simple format before we implement complex bank-specific parsers.

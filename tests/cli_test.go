@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"os"
 	"strings"
 	"testing"
 
@@ -70,5 +71,48 @@ func TestSearchAndDelete(t *testing.T) {
 	}
 	if !strings.Contains(delOut.String(), "successfully deleted") {
 		t.Errorf("Delete success message missing, got: %s", delOut.String())
+	}
+}
+
+func TestImportCommand(t *testing.T) {
+	db := NewTestDB(t)
+	cli.SetDatabase(db)
+
+	// 1. Create a temporary CSV file
+	content := []byte("date,description,amount,category\n2024-05-01,Gym,-30.00,Health\n2024-05-02,Bonus,500.00,Income")
+	tmpfile, err := os.CreateTemp("", "transactions-*.csv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name()) // clean up
+
+	if _, err := tmpfile.Write(content); err != nil {
+		t.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	// 2. Run Import Command
+	importOut := new(bytes.Buffer)
+	cli.RootCmd.SetOut(importOut)
+	cli.RootCmd.SetArgs([]string{"import", tmpfile.Name()})
+
+	if err := cli.RootCmd.Execute(); err != nil {
+		t.Fatalf("Import command failed: %v", err)
+	}
+
+	if !strings.Contains(importOut.String(), "2 imported") {
+		t.Errorf("Expected '2 imported', got: %s", importOut.String())
+	}
+
+	// 3. Verify they are in the DB via List
+	listOut := new(bytes.Buffer)
+	cli.RootCmd.SetOut(listOut)
+	cli.RootCmd.SetArgs([]string{"list"})
+	cli.RootCmd.Execute()
+
+	if !strings.Contains(listOut.String(), "Gym") || !strings.Contains(listOut.String(), "Bonus") {
+		t.Errorf("List output missing imported items")
 	}
 }
