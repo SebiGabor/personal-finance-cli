@@ -116,3 +116,35 @@ func TestImportCommand(t *testing.T) {
 		t.Errorf("List output missing imported items")
 	}
 }
+
+func TestReportCommand(t *testing.T) {
+	db := NewTestDB(t)
+	cli.SetDatabase(db)
+
+	// 1. Add some transactions for a specific month (e.g., May 2024)
+	// Income
+	cli.RootCmd.SetArgs([]string{"add", "--amount", "1000", "--desc", "Salary", "--category", "Income", "--date", "2024-05-01"})
+	cli.RootCmd.Execute()
+	// Expense
+	cli.RootCmd.SetArgs([]string{"add", "--amount", "-200", "--desc", "Groceries", "--category", "Food", "--date", "2024-05-05"})
+	cli.RootCmd.Execute()
+
+	// 2. Run Report for that month
+	reportOut := new(bytes.Buffer)
+	cli.RootCmd.SetOut(reportOut)
+	cli.RootCmd.SetArgs([]string{"report", "--year", "2024", "--month", "5"})
+
+	if err := cli.RootCmd.Execute(); err != nil {
+		t.Fatalf("Report command failed: %v", err)
+	}
+
+	output := reportOut.String()
+
+	// 3. Verify Output
+	if !strings.Contains(output, "Total Income:      1000.00") {
+		t.Errorf("Expected Total Income 1000.00, got output:\n%s", output)
+	}
+	if !strings.Contains(output, "Food") {
+		t.Errorf("Expected category 'Food' in report")
+	}
+}

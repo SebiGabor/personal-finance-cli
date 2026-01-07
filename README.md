@@ -79,10 +79,11 @@ go test ./...
 
 ## Next Steps
 
+* [x] Cobra CLI structure (`add`, `import`, `budget`, `search`, `report`)
+* [x] CSV Import
+* [x] Reporting (Basic monthly breakdown)
 * Auto-run migrations on startup
-* Cobra CLI structure (`add`, `import`, `budget`, `search`, `report`)
-* CSV/OFX importers
 * Regex-based auto-categorizer
+* Budget management commands
 * Budget alerts
-* Reports and terminal charts
 * Interactive TUI (BubbleTea)

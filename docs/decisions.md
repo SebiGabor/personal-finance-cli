@@ -58,3 +58,8 @@
 * **Decision:** Use Go's standard `encoding/csv` library.
 * **Format:** Enforce a simple default CSV structure (`Date,Description,Amount,Category`) for the initial version.
 * **Reason:** Provides immediate value with minimal dependencies. Allows users to bulk-import data by converting their bank statements to this simple format before we implement complex bank-specific parsers.
+
+## 10. Reporting Strategy
+
+* **Decision:** Implement monthly aggregation using SQL `GROUP BY` and display simple ASCII bar charts in the terminal.
+* **Reason:** Provides immediate visual feedback and spending insights without requiring external UI libraries or complex dependencies. Fits the "CLI-first" philosophy.
