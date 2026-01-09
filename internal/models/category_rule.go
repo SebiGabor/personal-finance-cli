@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"regexp"
 )
 
 type CategoryRule struct {
@@ -46,4 +47,16 @@ func ListRules(db *sql.DB) ([]CategoryRule, error) {
 func DeleteRule(db *sql.DB, id int64) error {
 	_, err := db.Exec(`DELETE FROM category_rules WHERE id = ?`, id)
 	return err
+}
+
+func MatchCategory(rules []CategoryRule, description string) string {
+	for _, rule := range rules {
+		// (?i) makes it case-insensitive if the user didn't include it
+		pattern := rule.Pattern
+		matched, err := regexp.MatchString(pattern, description)
+		if err == nil && matched {
+			return rule.Category
+		}
+	}
+	return ""
 }

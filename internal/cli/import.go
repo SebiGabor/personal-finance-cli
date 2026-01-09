@@ -15,9 +15,15 @@ import (
 var importCmd = &cobra.Command{
 	Use:   "import [file]",
 	Short: "Import transactions from a CSV file",
-	Long:  `Imports transactions from a CSV file. Expected format: Date,Description,Amount,Category (optional). Date must be YYYY-MM-DD.`,
+	Long:  `Imports transactions from a CSV file. Expected format: Date,Description,Amount,Category (optional).`,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// 1. Load rules first to use for auto-categorization
+		rules, err := models.ListRules(database)
+		if err != nil {
+			return fmt.Errorf("failed to load categorization rules: %w", err)
+		}
+
 		filePath := args[0]
 		file, err := os.Open(filePath)
 		if err != nil {
@@ -26,6 +32,10 @@ var importCmd = &cobra.Command{
 		defer file.Close()
 
 		reader := csv.NewReader(file)
+		// ALLOW VARIABLE NUMBER OF FIELDS
+		// This prevents the "wrong number of fields" error if the Category column is missing
+		reader.FieldsPerRecord = -1
+
 		records, err := reader.ReadAll()
 		if err != nil {
 			return fmt.Errorf("failed to read CSV data: %w", err)
@@ -35,43 +45,46 @@ var importCmd = &cobra.Command{
 		skippedCount := 0
 
 		for i, record := range records {
-			// Basic validation: ensure we have at least 3 columns (Date, Desc, Amount)
+			// Ensure we have at least 3 columns (Date, Desc, Amount)
 			if len(record) < 3 {
 				continue
 			}
 
-			// 1. Parse Date (Assume YYYY-MM-DD for now)
+			// Parse Date
 			dateStr := strings.TrimSpace(record[0])
 			date, err := time.Parse("2006-01-02", dateStr)
 			if err != nil {
-				// If the first row fails to parse as a date, assume it's a header and skip silently
 				if i == 0 {
 					continue
-				}
-				fmt.Fprintf(cmd.OutOrStdout(), "Row %d skipped: invalid date format '%s'\n", i+1, dateStr)
+				} // Skip header
+				fmt.Fprintf(cmd.OutOrStdout(), "Row %d skipped: invalid date\n", i+1)
 				skippedCount++
 				continue
 			}
 
-			// 2. Parse Description
 			description := strings.TrimSpace(record[1])
 
-			// 3. Parse Amount
+			// Parse Amount
 			amountStr := strings.TrimSpace(record[2])
 			amount, err := strconv.ParseFloat(amountStr, 64)
 			if err != nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Row %d skipped: invalid amount '%s'\n", i+1, amountStr)
+				fmt.Fprintf(cmd.OutOrStdout(), "Row %d skipped: invalid amount\n", i+1)
 				skippedCount++
 				continue
 			}
 
-			// 4. Parse Category (Optional)
+			// Determine Category
 			category := "Uncategorized"
+			// If CSV has a category column, use it
 			if len(record) > 3 && strings.TrimSpace(record[3]) != "" {
 				category = strings.TrimSpace(record[3])
+			} else {
+				// Otherwise, try to auto-categorize
+				if match := models.MatchCategory(rules, description); match != "" {
+					category = match
+				}
 			}
 
-			// Create and Save Transaction
 			tr := &models.Transaction{
 				Date:        date,
 				Description: description,

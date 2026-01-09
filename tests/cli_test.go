@@ -148,3 +148,38 @@ func TestReportCommand(t *testing.T) {
 		t.Errorf("Expected category 'Food' in report")
 	}
 }
+
+func TestAutoCategorization(t *testing.T) {
+	db := NewTestDB(t)
+	cli.SetDatabase(db)
+
+	// 1. Add a Rule: "Uber" -> "Transport"
+	cli.RootCmd.SetArgs([]string{"rules", "add", "--pattern", "(?i)uber", "--category", "Transport"})
+	cli.RootCmd.Execute()
+
+	// 2. Create a CSV with an uncategorized "Uber" transaction
+	content := []byte("date,description,amount\n2024-06-01,Uber Trip,-25.50")
+	tmpfile, err := os.CreateTemp("", "autocat-*.csv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+	tmpfile.Write(content)
+	tmpfile.Close()
+
+	// 3. Import
+	cli.RootCmd.SetArgs([]string{"import", tmpfile.Name()})
+	if err := cli.RootCmd.Execute(); err != nil {
+		t.Fatalf("Import failed: %v", err)
+	}
+
+	// 4. Verify the category was set to "Transport"
+	listOut := new(bytes.Buffer)
+	cli.RootCmd.SetOut(listOut)
+	cli.RootCmd.SetArgs([]string{"list"})
+	cli.RootCmd.Execute()
+
+	if !strings.Contains(listOut.String(), "Transport") {
+		t.Errorf("Auto-categorization failed. Expected 'Transport', got:\n%s", listOut.String())
+	}
+}
