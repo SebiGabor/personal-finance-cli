@@ -183,3 +183,43 @@ func TestAutoCategorization(t *testing.T) {
 		t.Errorf("Auto-categorization failed. Expected 'Transport', got:\n%s", listOut.String())
 	}
 }
+
+func TestBudgetCommands(t *testing.T) {
+	db := NewTestDB(t)
+	cli.SetDatabase(db)
+
+	// 1. Set a Budget
+	cli.RootCmd.SetArgs([]string{"budget", "add", "--category", "Groceries", "--amount", "500"})
+	if err := cli.RootCmd.Execute(); err != nil {
+		t.Fatalf("Budget add failed: %v", err)
+	}
+
+	// 2. List Budgets and verify output
+	listOut := new(bytes.Buffer)
+	cli.RootCmd.SetOut(listOut)
+	cli.RootCmd.SetArgs([]string{"budget", "list"})
+	if err := cli.RootCmd.Execute(); err != nil {
+		t.Fatalf("Budget list failed: %v", err)
+	}
+
+	output := listOut.String()
+	if !strings.Contains(output, "Groceries") || !strings.Contains(output, "500.00") {
+		t.Errorf("Expected budget list to contain 'Groceries' and '500.00', got:\n%s", output)
+	}
+
+	// 3. Remove the Budget (ID should be 1)
+	cli.RootCmd.SetArgs([]string{"budget", "remove", "1"})
+	if err := cli.RootCmd.Execute(); err != nil {
+		t.Fatalf("Budget remove failed: %v", err)
+	}
+
+	// 4. Verify list is empty
+	listOut.Reset()
+	cli.RootCmd.SetOut(listOut)
+	cli.RootCmd.SetArgs([]string{"budget", "list"})
+	cli.RootCmd.Execute()
+
+	if !strings.Contains(listOut.String(), "No budgets set") {
+		t.Errorf("Expected 'No budgets set', got:\n%s", listOut.String())
+	}
+}

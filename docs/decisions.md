@@ -63,3 +63,13 @@
 
 * **Decision:** Implement monthly aggregation using SQL `GROUP BY` and display simple ASCII bar charts in the terminal.
 * **Reason:** Provides immediate visual feedback and spending insights without requiring external UI libraries or complex dependencies. Fits the "CLI-first" philosophy.
+
+## 11. Auto-Categorization Logic
+
+* **Decision:** Implement a rule-based categorization engine using Go's `regexp` library.
+* **Reason:** Enables flexible, case-insensitive pattern matching (e.g., `(?i)uber`) to automatically assign categories to transactions during import, significantly reducing manual data entry.
+
+## 12. Budget Management
+
+* **Decision:** Create a dedicated `budget` command with `add`, `list`, and `remove` subcommands.
+* **Reason:** Separates configuration (setting limits) from reporting (viewing progress). Keeps the CLI organized and modular. Defaults to "monthly" periods for simplicity in the initial version.
