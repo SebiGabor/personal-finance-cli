@@ -77,13 +77,7 @@ func DeleteBudget(db *sql.DB, id int64) error {
 }
 
 func GetSpendingTotal(db *sql.DB, category string, month time.Month, year int) (float64, error) {
-	// Filter by category and the specific month pattern (YYYY-MM)
 	dateFilter := fmt.Sprintf("%04d-%02d%%", year, month)
-
-	// We sum 'amount'. Expenses are usually negative in your system (based on previous imports),
-	// but budgets are positive limits. We should sum the absolute values of negative amounts (expenses).
-	// Or, if your system stores expenses as negative, we sum them and flip the sign.
-	// Let's assume expenses are stored as negative numbers (e.g. -15.50).
 	query := `
 		SELECT SUM(amount)
 		FROM transactions
@@ -91,15 +85,12 @@ func GetSpendingTotal(db *sql.DB, category string, month time.Month, year int) (
 		AND date LIKE ?
 		AND amount < 0; 
 	`
-
 	var total sql.NullFloat64
 	err := db.QueryRow(query, category, dateFilter).Scan(&total)
 	if err != nil {
 		return 0, err
 	}
-
 	if total.Valid {
-		// Return positive value for comparison with budget
 		return -total.Float64, nil
 	}
 	return 0, nil

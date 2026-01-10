@@ -11,16 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	budgetCategory string
-	budgetAmount   float64
-)
-
-// budgetCmd represents the base command for budget management
 var budgetCmd = &cobra.Command{
 	Use:   "budget",
 	Short: "Manage monthly budgets",
-	Long:  "Set, list, and remove monthly spending limits for categories.",
 }
 
 var budgetAddCmd = &cobra.Command{
@@ -28,9 +21,13 @@ var budgetAddCmd = &cobra.Command{
 	Short:   "Set a budget for a category",
 	Example: "finance budget add --category Food --amount 500",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// Get values locally
+		category, _ := cmd.Flags().GetString("category")
+		amount, _ := cmd.Flags().GetFloat64("amount")
+
 		b := &models.Budget{
-			Category: budgetCategory,
-			Amount:   budgetAmount,
+			Category: category,
+			Amount:   amount,
 			Period:   "monthly",
 		}
 
@@ -38,7 +35,7 @@ var budgetAddCmd = &cobra.Command{
 			return fmt.Errorf("failed to create budget: %w", err)
 		}
 
-		fmt.Fprintf(cmd.OutOrStdout(), "Budget set: %s -> %.2f/month\n", budgetCategory, budgetAmount)
+		fmt.Fprintf(cmd.OutOrStdout(), "Budget set: %s -> %.2f/month\n", category, amount)
 		return nil
 	},
 }
@@ -97,7 +94,6 @@ var budgetRemoveCmd = &cobra.Command{
 	},
 }
 
-// Helper to create a simple ASCII progress bar
 func getProgressBar(spent, limit float64) string {
 	if limit == 0 {
 		return "[???]"
@@ -106,9 +102,7 @@ func getProgressBar(spent, limit float64) string {
 	if percent > 1.0 {
 		return "[!! OVER BUDGET !!]"
 	}
-
-	bars := int(percent * 10) // 0 to 10 bars
-
+	bars := int(percent * 10)
 	return fmt.Sprintf("[%s%s] %.0f%%",
 		strings.Repeat("█", bars),
 		strings.Repeat("-", 10-bars),
@@ -122,8 +116,9 @@ func init() {
 	budgetCmd.AddCommand(budgetListCmd)
 	budgetCmd.AddCommand(budgetRemoveCmd)
 
-	budgetAddCmd.Flags().StringVarP(&budgetCategory, "category", "c", "", "Category for the budget")
-	budgetAddCmd.Flags().Float64VarP(&budgetAmount, "amount", "a", 0, "Spending limit amount")
+	// Define flags locally
+	budgetAddCmd.Flags().StringP("category", "c", "", "Category for the budget")
+	budgetAddCmd.Flags().Float64P("amount", "a", 0, "Spending limit amount")
 	budgetAddCmd.MarkFlagRequired("category")
 	budgetAddCmd.MarkFlagRequired("amount")
 }

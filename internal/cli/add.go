@@ -8,17 +8,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	amount   float64
-	desc     string
-	category string
-	dateStr  string
-)
-
 var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new transaction manually",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// 1. Get flag values DIRECTLY inside the function
+		amount, _ := cmd.Flags().GetFloat64("amount")
+		desc, _ := cmd.Flags().GetString("desc")
+		category, _ := cmd.Flags().GetString("category")
+		dateStr, _ := cmd.Flags().GetString("date")
+
+		// 2. Parse Date
 		date := time.Now()
 		if dateStr != "" {
 			var err error
@@ -35,22 +35,21 @@ var addCmd = &cobra.Command{
 			Category:    category,
 		}
 
-		err := models.CreateTransaction(database, tr)
-		if err != nil {
+		// 3. Save Transaction
+		if err := models.CreateTransaction(database, tr); err != nil {
 			return fmt.Errorf("failed to save transaction: %w", err)
 		}
 
 		fmt.Fprintf(cmd.OutOrStdout(), "Successfully added transaction (ID: %d)\n", tr.ID)
 
-		// --- NEW: Budget Alert Logic ---
+		// 4. Budget Alert Logic
 		// Only check if it's an expense (negative amount)
 		if amount < 0 {
-			// Check if a budget exists for this category
-			// We list all budgets and find the matching one (simple approach)
 			budgets, _ := models.ListBudgets(database)
 			for _, b := range budgets {
 				if b.Category == category {
 					spent, _ := models.GetSpendingTotal(database, category, date.Month(), date.Year())
+
 					if spent > b.Amount {
 						fmt.Fprintf(cmd.OutOrStdout(), "\n⚠️  ALERT: You have exceeded your budget for '%s'!\n", category)
 						fmt.Fprintf(cmd.OutOrStdout(), "   Limit: %.2f | Spent: %.2f\n", b.Amount, spent)
@@ -61,7 +60,6 @@ var addCmd = &cobra.Command{
 				}
 			}
 		}
-		// -------------------------------
 
 		return nil
 	},
@@ -70,10 +68,11 @@ var addCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(addCmd)
 
-	addCmd.Flags().Float64VarP(&amount, "amount", "a", 0, "Amount (positive for income, negative for expense)")
-	addCmd.Flags().StringVarP(&desc, "desc", "d", "", "Transaction description")
-	addCmd.Flags().StringVarP(&category, "category", "c", "Uncategorized", "Transaction category")
-	addCmd.Flags().StringVarP(&dateStr, "date", "t", "", "Date (YYYY-MM-DD), defaults to today")
+	// IMPORTANT: Use P-suffix functions (Float64P) and DO NOT pass a pointer (&amount).
+	addCmd.Flags().Float64P("amount", "a", 0, "Amount (positive for income, negative for expense)")
+	addCmd.Flags().StringP("desc", "d", "", "Transaction description")
+	addCmd.Flags().StringP("category", "c", "Uncategorized", "Transaction category")
+	addCmd.Flags().StringP("date", "t", "", "Date (YYYY-MM-DD), defaults to today")
 
 	addCmd.MarkFlagRequired("amount")
 	addCmd.MarkFlagRequired("desc")
