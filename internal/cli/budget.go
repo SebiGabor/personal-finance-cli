@@ -3,7 +3,9 @@ package cli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/SebiGabor/personal-finance-cli/internal/models"
 	"github.com/spf13/cobra"
@@ -29,7 +31,7 @@ var budgetAddCmd = &cobra.Command{
 		b := &models.Budget{
 			Category: budgetCategory,
 			Amount:   budgetAmount,
-			Period:   "monthly", // Defaulting to monthly for now
+			Period:   "monthly",
 		}
 
 		if err := models.CreateBudget(database, b); err != nil {
@@ -43,7 +45,7 @@ var budgetAddCmd = &cobra.Command{
 
 var budgetListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all budgets",
+	Short: "List all budgets and current status",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		budgets, err := models.ListBudgets(database)
 		if err != nil {
@@ -56,9 +58,21 @@ var budgetListCmd = &cobra.Command{
 		}
 
 		w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "ID\tCATEGORY\tLIMIT\tPERIOD")
+		fmt.Fprintln(w, "CATEGORY\tLIMIT\tSPENT\tREMAINING\tSTATUS")
+
+		now := time.Now()
+
 		for _, b := range budgets {
-			fmt.Fprintf(w, "%d\t%s\t%.2f\t%s\n", b.ID, b.Category, b.Amount, b.Period)
+			spent, err := models.GetSpendingTotal(database, b.Category, now.Month(), now.Year())
+			if err != nil {
+				spent = 0
+			}
+
+			remaining := b.Amount - spent
+			status := getProgressBar(spent, b.Amount)
+
+			fmt.Fprintf(w, "%s\t%.2f\t%.2f\t%.2f\t%s\n",
+				b.Category, b.Amount, spent, remaining, status)
 		}
 		return w.Flush()
 	},
@@ -83,13 +97,31 @@ var budgetRemoveCmd = &cobra.Command{
 	},
 }
 
+// Helper to create a simple ASCII progress bar
+func getProgressBar(spent, limit float64) string {
+	if limit == 0 {
+		return "[???]"
+	}
+	percent := spent / limit
+	if percent > 1.0 {
+		return "[!! OVER BUDGET !!]"
+	}
+
+	bars := int(percent * 10) // 0 to 10 bars
+
+	return fmt.Sprintf("[%s%s] %.0f%%",
+		strings.Repeat("█", bars),
+		strings.Repeat("-", 10-bars),
+		percent*100,
+	)
+}
+
 func init() {
 	RootCmd.AddCommand(budgetCmd)
 	budgetCmd.AddCommand(budgetAddCmd)
 	budgetCmd.AddCommand(budgetListCmd)
 	budgetCmd.AddCommand(budgetRemoveCmd)
 
-	// Flags for 'budget add'
 	budgetAddCmd.Flags().StringVarP(&budgetCategory, "category", "c", "", "Category for the budget")
 	budgetAddCmd.Flags().Float64VarP(&budgetAmount, "amount", "a", 0, "Spending limit amount")
 	budgetAddCmd.MarkFlagRequired("category")

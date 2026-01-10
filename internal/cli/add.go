@@ -41,6 +41,28 @@ var addCmd = &cobra.Command{
 		}
 
 		fmt.Fprintf(cmd.OutOrStdout(), "Successfully added transaction (ID: %d)\n", tr.ID)
+
+		// --- NEW: Budget Alert Logic ---
+		// Only check if it's an expense (negative amount)
+		if amount < 0 {
+			// Check if a budget exists for this category
+			// We list all budgets and find the matching one (simple approach)
+			budgets, _ := models.ListBudgets(database)
+			for _, b := range budgets {
+				if b.Category == category {
+					spent, _ := models.GetSpendingTotal(database, category, date.Month(), date.Year())
+					if spent > b.Amount {
+						fmt.Fprintf(cmd.OutOrStdout(), "\n⚠️  ALERT: You have exceeded your budget for '%s'!\n", category)
+						fmt.Fprintf(cmd.OutOrStdout(), "   Limit: %.2f | Spent: %.2f\n", b.Amount, spent)
+					} else if spent > (b.Amount * 0.9) {
+						fmt.Fprintf(cmd.OutOrStdout(), "\n⚠️  WARNING: You are close to your budget for '%s' (%.0f%% used).\n", category, (spent/b.Amount)*100)
+					}
+					break
+				}
+			}
+		}
+		// -------------------------------
+
 		return nil
 	},
 }
