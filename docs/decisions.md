@@ -73,3 +73,11 @@
 
 * **Decision:** Create a dedicated `budget` command with `add`, `list`, and `remove` subcommands.
 * **Reason:** Separates configuration (setting limits) from reporting (viewing progress). Keeps the CLI organized and modular. Defaults to "monthly" periods for simplicity in the initial version.
+
+## 13. Budget Alerts and Monitoring
+
+* **Decision:** Implement active monitoring during transaction creation (`add` command) and passive monitoring via visual indicators in the `budget list` command.
+* **Reason:**
+    * **Visuals:** ASCII progress bars provide immediate "at a glance" status of finances without needing complex GUI charts.
+    * **Alerts:** Triggering alerts immediately after a manual entry gives the user instant feedback on their spending habits.
+    * **Non-blocking:** We chose *not* to block the transaction if it exceeds the budget, as the CLI is a tracking tool, not a bank authorization system. The data must reflect reality.
