@@ -81,3 +81,10 @@
     * **Visuals:** ASCII progress bars provide immediate "at a glance" status of finances without needing complex GUI charts.
     * **Alerts:** Triggering alerts immediately after a manual entry gives the user instant feedback on their spending habits.
     * **Non-blocking:** We chose *not* to block the transaction if it exceeds the budget, as the CLI is a tracking tool, not a bank authorization system. The data must reflect reality.
+
+## 14. Interactive Terminal UI (TUI)
+
+* **Decision:** Use the `github.com/rivo/tview` library to implement an interactive browsing mode.
+* **Reason:**
+    * **User Experience:** CLI flags (`list`, `search`) are great for quick queries, but browsing a large history of transactions is better served by a scrollable visual table.
+    * **Library Choice:** `tview` was chosen over `termui` or raw `tcell` because it provides high-level components (Tables, Forms) that simplify rendering and event handling, reducing development time.
