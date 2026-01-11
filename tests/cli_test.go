@@ -117,6 +117,85 @@ func TestImportCommand(t *testing.T) {
 	}
 }
 
+func TestImportOFX(t *testing.T) {
+	// 1. Setup Test DB
+	db := NewTestDB(t)
+	cli.SetDatabase(db)
+
+	// 2. Create a sample OFX content (Mock Bank Statement)
+	ofxContent := `
+<OFX>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <STMTRS>
+        <BANKTRANLIST>
+          <STMTTRN>
+            <TRNTYPE>DEBIT</TRNTYPE>
+            <DTPOSTED>20240115</DTPOSTED>
+            <TRNAMT>-45.50</TRNAMT>
+            <NAME>Hardware Store</NAME>
+            <MEMO>Tools</MEMO>
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT</TRNTYPE>
+            <DTPOSTED>20240116</DTPOSTED>
+            <TRNAMT>1200.00</TRNAMT>
+            <NAME>Salary</NAME>
+            <MEMO>January</MEMO>
+          </STMTTRN>
+        </BANKTRANLIST>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>`
+
+	// 3. Write to a temporary file
+	tmpfile, err := os.CreateTemp("", "statement-*.ofx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name()) // Clean up after test
+
+	if _, err := tmpfile.Write([]byte(ofxContent)); err != nil {
+		t.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	// 4. Run Import Command
+	out := new(bytes.Buffer)
+	cli.RootCmd.SetOut(out)
+	cli.RootCmd.SetArgs([]string{"import", tmpfile.Name()})
+
+	if err := cli.RootCmd.Execute(); err != nil {
+		t.Fatalf("Import OFX failed: %v", err)
+	}
+
+	// 5. Verify Output Message
+	if !strings.Contains(out.String(), "OFX Import complete") {
+		t.Errorf("Expected success message, got:\n%s", out.String())
+	}
+
+	// 6. Verify Database Data via 'list' command
+	listOut := new(bytes.Buffer)
+	cli.RootCmd.SetOut(listOut)
+	cli.RootCmd.SetArgs([]string{"list"})
+	cli.RootCmd.Execute()
+
+	output := listOut.String()
+	// Check for the specific data points
+	if !strings.Contains(output, "Hardware Store") {
+		t.Error("Missing 'Hardware Store' transaction in list")
+	}
+	if !strings.Contains(output, "-45.50") {
+		t.Error("Missing amount -45.50 in list")
+	}
+	if !strings.Contains(output, "Salary") {
+		t.Error("Missing 'Salary' transaction in list")
+	}
+}
+
 func TestReportCommand(t *testing.T) {
 	db := NewTestDB(t)
 	cli.SetDatabase(db)

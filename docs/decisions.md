@@ -88,3 +88,10 @@
 * **Reason:**
     * **User Experience:** CLI flags (`list`, `search`) are great for quick queries, but browsing a large history of transactions is better served by a scrollable visual table.
     * **Library Choice:** `tview` was chosen over `termui` or raw `tcell` because it provides high-level components (Tables, Forms) that simplify rendering and event handling, reducing development time.
+
+## 15. OFX File Support
+
+* **Decision:** Implement a custom XML parser for Open Financial Exchange (OFX) files using Go's `encoding/xml`.
+* **Reason:**
+    * **Standardization:** OFX is a widely used standard by banks for exporting transaction data, offering a more reliable structure than CSV (which varies by bank).
+    * **Simplicity:** Instead of a heavy third-party library, we defined minimal Go structs matching the specific XML tags needed (`<STMTTRN>`, `<TRNAMT>`, etc.) to keep dependencies low.
