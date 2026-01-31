@@ -95,3 +95,17 @@
 * **Reason:**
     * **Standardization:** OFX is a widely used standard by banks for exporting transaction data, offering a more reliable structure than CSV (which varies by bank).
     * **Simplicity:** Instead of a heavy third-party library, we defined minimal Go structs matching the specific XML tags needed (`<STMTTRN>`, `<TRNAMT>`, etc.) to keep dependencies low.
+
+## 16. Category Normalization
+
+* **Decision:** Enforce "Title Case" normalization for all category inputs (Manual Entry, Imports, Budgets, Rules).
+* **Reason:**
+  * **Consistency:** Users may enter "food", "Food", or "FOOD". Without normalization, the system treats these as three separate categories, breaking budget alerts and reports.
+  * **Implementation:** We use `golang.org/x/text/cases` to standardize all inputs to Title Case (e.g., "groceries" -> "Groceries") before saving to the database.
+
+## 17. Robust Import Deduplication
+
+* **Decision:** Implement a pre-insert check (`TransactionExists`) that uses `COUNT(*)` and epsilon comparisons for floating-point amounts.
+* **Reason:**
+  * **Data Integrity:** Re-importing a bank statement (accidentally or intentionally) should not duplicate existing transactions.
+  * **Float Reliability:** Direct equality checks (`amount == 50.00`) can fail due to floating-point precision issues. We use `ABS(new - old) < 0.001` to safely detect identical amounts.

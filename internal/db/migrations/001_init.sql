@@ -8,12 +8,6 @@ CREATE TABLE IF NOT EXISTS transactions (
                                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS categories (
-                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                          name TEXT NOT NULL UNIQUE,
-                                          regex_rule TEXT
-);
-
 CREATE TABLE IF NOT EXISTS budgets (
                                        id INTEGER PRIMARY KEY AUTOINCREMENT,
                                        category TEXT NOT NULL,

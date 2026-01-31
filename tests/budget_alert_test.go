@@ -14,8 +14,6 @@ func TestBudgetAlerts(t *testing.T) {
 	db := NewTestDB(t)
 	cli.SetDatabase(db)
 
-	// --- CRITICAL FIX: Reset flags to ensure no interference from other tests ---
-	// Since 'addCmd' is reused across tests, we must clear its flags manually.
 	for _, cmd := range cli.RootCmd.Commands() {
 		if cmd.Name() == "add" {
 			cmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -26,7 +24,6 @@ func TestBudgetAlerts(t *testing.T) {
 			})
 		}
 	}
-	// --------------------------------------------------------------------------
 
 	// 2. Set a Budget of 100 for "Entertainment"
 	cli.RootCmd.SetArgs([]string{"budget", "add", "--category", "Entertainment", "--amount", "100"})

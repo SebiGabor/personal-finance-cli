@@ -18,7 +18,6 @@ type Transaction struct {
 	CreatedAt   time.Time
 }
 
-// Add this new function
 func NormalizeCategory(c string) string {
 	if c == "" {
 		return "Uncategorized"

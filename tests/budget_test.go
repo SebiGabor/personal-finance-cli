@@ -61,8 +61,8 @@ func TestBudgetSpending(t *testing.T) {
 	transactions := []*models.Transaction{
 		{Date: now, Description: "Burger", Amount: -10.00, Category: "Food"},
 		{Date: now, Description: "Pizza", Amount: -20.00, Category: "Food"},
-		{Date: now, Description: "Refund", Amount: 5.00, Category: "Food"},                         // Positive, ignored by current logic
-		{Date: now, Description: "Gas", Amount: -50.00, Category: "Transport"},                     // Different category
+		{Date: now, Description: "Refund", Amount: 5.00, Category: "Food"},
+		{Date: now, Description: "Gas", Amount: -50.00, Category: "Transport"},
 		{Date: now.AddDate(0, -1, 0), Description: "Old Pizza", Amount: -100.00, Category: "Food"}, // Wrong month
 	}
 

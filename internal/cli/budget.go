@@ -18,7 +18,7 @@ var budgetCmd = &cobra.Command{
 
 var budgetAddCmd = &cobra.Command{
 	Use:     "add",
-	Short:   "Set or update a budget for a category", // Changed description
+	Short:   "Set or update a budget for a category",
 	Example: "finance budget add --category Food --amount 500",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Get values locally
@@ -32,7 +32,7 @@ var budgetAddCmd = &cobra.Command{
 			Period:   "monthly",
 		}
 
-		// This now handles Insert OR Update
+		// This handles Insert OR Update
 		if err := models.CreateBudget(database, b); err != nil {
 			return fmt.Errorf("failed to set budget: %w", err)
 		}
@@ -58,7 +58,7 @@ var budgetListCmd = &cobra.Command{
 		}
 
 		w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "CATEGORY\tLIMIT\tSPENT\tREMAINING\tSTATUS")
+		fmt.Fprintln(w, "ID\tCATEGORY\tLIMIT\tSPENT\tREMAINING\tSTATUS")
 
 		now := time.Now()
 
@@ -71,8 +71,8 @@ var budgetListCmd = &cobra.Command{
 			remaining := b.Amount - spent
 			status := getProgressBar(spent, b.Amount)
 
-			fmt.Fprintf(w, "%s\t%.2f\t%.2f\t%.2f\t%s\n",
-				b.Category, b.Amount, spent, remaining, status)
+			fmt.Fprintf(w, "%d\t%s\t%.2f\t%.2f\t%.2f\t%s\n",
+				b.ID, b.Category, b.Amount, spent, remaining, status)
 		}
 		return w.Flush()
 	},

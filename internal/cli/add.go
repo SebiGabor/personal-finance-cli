@@ -17,6 +17,21 @@ var addCmd = &cobra.Command{
 		desc, _ := cmd.Flags().GetString("desc")
 		catRaw, _ := cmd.Flags().GetString("category")
 		dateStr, _ := cmd.Flags().GetString("date")
+
+		// --- AUTO-CATEGORIZATION LOGIC ---
+		// If the user didn't provide a category (it's "Uncategorized"), check the rules.
+		if catRaw == "Uncategorized" || catRaw == "" {
+			rules, err := models.ListRules(database)
+			if err != nil {
+				return fmt.Errorf("failed to load rules: %w", err)
+			}
+			// Try to match the description against regex rules
+			if match := models.MatchCategory(rules, desc); match != "" {
+				catRaw = match
+				fmt.Fprintf(cmd.OutOrStdout(), "Auto-categorized as: %s\n", catRaw)
+			}
+		}
+
 		category := models.NormalizeCategory(catRaw)
 
 		// 2. Parse Date
@@ -69,7 +84,6 @@ var addCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(addCmd)
 
-	// IMPORTANT: Use P-suffix functions (Float64P) and DO NOT pass a pointer (&amount).
 	addCmd.Flags().Float64P("amount", "a", 0, "Amount (positive for income, negative for expense)")
 	addCmd.Flags().StringP("desc", "d", "", "Transaction description")
 	addCmd.Flags().StringP("category", "c", "Uncategorized", "Transaction category")
