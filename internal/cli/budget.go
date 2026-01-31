@@ -18,7 +18,7 @@ var budgetCmd = &cobra.Command{
 
 var budgetAddCmd = &cobra.Command{
 	Use:     "add",
-	Short:   "Set a budget for a category",
+	Short:   "Set or update a budget for a category", // Changed description
 	Example: "finance budget add --category Food --amount 500",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Get values locally
@@ -31,11 +31,13 @@ var budgetAddCmd = &cobra.Command{
 			Period:   "monthly",
 		}
 
+		// This now handles Insert OR Update
 		if err := models.CreateBudget(database, b); err != nil {
-			return fmt.Errorf("failed to create budget: %w", err)
+			return fmt.Errorf("failed to set budget: %w", err)
 		}
 
-		fmt.Fprintf(cmd.OutOrStdout(), "Budget set: %s -> %.2f/month\n", category, amount)
+		// Updated success message
+		fmt.Fprintf(cmd.OutOrStdout(), "Budget set for '%s': %.2f/month\n", category, amount)
 		return nil
 	},
 }
