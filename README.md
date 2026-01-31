@@ -3,25 +3,25 @@
 A robust, local-first command-line tool for tracking personal income and expenses. Built with Go, it allows you to import transactions from bank statements (CSV/OFX), categorize them automatically using regex rules, set monthly budgets, and visualize your spending habits—all directly from your terminal.
 
 ![Project Status](https://img.shields.io/badge/status-complete-success)
-![Go Version](https://img.shields.io/badge/go-1.21%2B-blue)
+![Go Version](https://img.shields.io/badge/go-1.25%2B-blue)
 
-## 🚀 Features
+## Features
 
-* **📊 Multi-Format Import:** Seamlessly import transactions from **CSV** and **OFX** (Bank Export) files.
-* **🤖 Auto-Categorization:** Define Regex-based rules to automatically assign categories to new transactions.
-* **🛡️ Duplicate Detection:** Smart import logic prevents duplicate entries, even if you re-import the same file.
-* **💰 Budgeting & Alerts:** Set monthly limits per category. The CLI warns you immediately if you overspend.
-* **📈 Visual Reports:** Generate ASCII bar charts to visualize monthly spending breakdowns.
-* **🖥️ Interactive TUI:** Browse, scroll, and view your transaction history in a rich Terminal UI.
-* **🔍 Search & Filter:** Instantly find transactions by keyword or category.
-* **📂 Local Storage:** Uses a zero-dependency SQLite database (no server required).
+* **Multi-Format Import:** Seamlessly import transactions from **CSV** and **OFX** (Bank Export) files.
+* **Auto-Categorization:** Define Regex-based rules to automatically assign categories to new transactions.
+* **Duplicate Detection:** Smart import logic prevents duplicate entries, even if you re-import the same file.
+* **Budgeting & Alerts:** Set monthly limits per category. The CLI warns you immediately if you overspend.
+* **Visual Reports:** Generate ASCII bar charts to visualize monthly spending breakdowns.
+* **Interactive TUI:** Browse, scroll, and view your transaction history in a rich Terminal UI.
+* **Search & Filter:** Instantly find transactions by keyword or category.
+* **Local Storage:** Uses a zero-dependency SQLite database (no server required).
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
-* [Go 1.21+](https://go.dev/dl/) installed.
+* [Go 1.25+](https://go.dev/dl/) installed.
 
 ### Build from Source
 1. **Clone the repository:**
@@ -38,7 +38,7 @@ A robust, local-first command-line tool for tracking personal income and expense
 
 ---
 
-## 📖 Usage Guide
+## Usage Guide
 
 To run the tool, use the `./finance` command followed by a subcommand.
 
@@ -142,7 +142,7 @@ View or delete individual transactions.
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 The project follows the standard [Golang Project Layout](https://github.com/golang-standards/project-layout):
 
@@ -160,7 +160,7 @@ personal-finance-cli/
 └── README.md           # This file
 ```
 
-## 🧪 Testing
+## Testing
 
 The project uses a comprehensive suite of integration tests with an in-memory database to ensure reliability.
 
