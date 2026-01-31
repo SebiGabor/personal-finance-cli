@@ -61,6 +61,7 @@ func importCSV(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 
 	importedCount := 0
 	skippedCount := 0
+	duplicateCount := 0 // Track duplicates
 
 	for i, record := range records {
 		if len(record) < 3 {
@@ -101,6 +102,16 @@ func importCSV(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 
 		category = models.NormalizeCategory(category)
 		tr := &models.Transaction{Date: date, Description: description, Amount: amount, Category: category}
+
+		exists, err := models.TransactionExists(database, tr)
+		if err != nil {
+			return fmt.Errorf("failed to check duplicate: %w", err)
+		}
+		if exists {
+			duplicateCount++
+			continue // Skip this transaction
+		}
+
 		if err := models.CreateTransaction(database, tr); err != nil {
 			skippedCount++
 		} else {
@@ -108,7 +119,7 @@ func importCSV(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 		}
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "CSV Import complete. %d imported, %d skipped.\n", importedCount, skippedCount)
+	fmt.Fprintf(cmd.OutOrStdout(), "CSV Import complete. %d imported, %d duplicates skipped, %d errors.\n", importedCount, duplicateCount, skippedCount)
 	return nil
 }
 
@@ -151,6 +162,7 @@ func importOFX(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 
 	importedCount := 0
 	skippedCount := 0
+	duplicateCount := 0 // Track duplicates
 
 	for _, t := range ofx.BankMsgs.StmtTrn.StmtRs.BankTranList.Transactions {
 		// 1. Parse Date (OFX dates look like "20231025120000" or "20231025")
@@ -181,6 +193,16 @@ func importOFX(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 
 		category = models.NormalizeCategory(category)
 		tr := &models.Transaction{Date: date, Description: description, Amount: amount, Category: category}
+
+		exists, err := models.TransactionExists(database, tr)
+		if err != nil {
+			return fmt.Errorf("failed to check duplicate: %w", err)
+		}
+		if exists {
+			duplicateCount++
+			continue // Skip
+		}
+
 		if err := models.CreateTransaction(database, tr); err != nil {
 			skippedCount++
 		} else {
@@ -188,7 +210,7 @@ func importOFX(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 		}
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "OFX Import complete. %d imported, %d skipped.\n", importedCount, skippedCount)
+	fmt.Fprintf(cmd.OutOrStdout(), "OFX Import complete. %d imported, %d duplicates skipped, %d errors.\n", importedCount, duplicateCount, skippedCount)
 	return nil
 }
 

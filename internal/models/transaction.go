@@ -49,6 +49,19 @@ func CreateTransaction(db *sql.DB, t *Transaction) error {
 	return err
 }
 
+// TransactionExists checks if a transaction with the same date, amount, and description already exists
+func TransactionExists(db *sql.DB, t *Transaction) (bool, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM transactions 
+		WHERE date = ? 
+		AND description = ? 
+		AND ABS(amount - ?) < 0.001
+	`
+	err := db.QueryRow(query, t.Date.Format("2006-01-02"), t.Description, t.Amount).Scan(&count)
+	return count > 0, err
+}
+
 // GetTransaction retrieves one by ID
 func GetTransaction(db *sql.DB, id int64) (*Transaction, error) {
 	query := `
