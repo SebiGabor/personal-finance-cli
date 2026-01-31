@@ -2,7 +2,11 @@ package models
 
 import (
 	"database/sql"
+	"strings"
 	"time"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Transaction struct {
@@ -12,6 +16,16 @@ type Transaction struct {
 	Amount      float64
 	Category    string
 	CreatedAt   time.Time
+}
+
+// Add this new function
+func NormalizeCategory(c string) string {
+	if c == "" {
+		return "Uncategorized"
+	}
+	// Converts to Title Case (e.g., "groceries" -> "Groceries")
+	caser := cases.Title(language.English)
+	return caser.String(strings.TrimSpace(c))
 }
 
 // CreateTransaction inserts a new transaction.

@@ -99,6 +99,7 @@ func importCSV(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 			}
 		}
 
+		category = models.NormalizeCategory(category)
 		tr := &models.Transaction{Date: date, Description: description, Amount: amount, Category: category}
 		if err := models.CreateTransaction(database, tr); err != nil {
 			skippedCount++
@@ -178,6 +179,7 @@ func importOFX(cmd *cobra.Command, filePath string, rules []models.CategoryRule)
 			category = match
 		}
 
+		category = models.NormalizeCategory(category)
 		tr := &models.Transaction{Date: date, Description: description, Amount: amount, Category: category}
 		if err := models.CreateTransaction(database, tr); err != nil {
 			skippedCount++

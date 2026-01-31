@@ -15,8 +15,9 @@ var addCmd = &cobra.Command{
 		// 1. Get flag values DIRECTLY inside the function
 		amount, _ := cmd.Flags().GetFloat64("amount")
 		desc, _ := cmd.Flags().GetString("desc")
-		category, _ := cmd.Flags().GetString("category")
+		catRaw, _ := cmd.Flags().GetString("category")
 		dateStr, _ := cmd.Flags().GetString("date")
+		category := models.NormalizeCategory(catRaw)
 
 		// 2. Parse Date
 		date := time.Now()

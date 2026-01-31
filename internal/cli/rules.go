@@ -23,16 +23,17 @@ var rulesAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new categorization rule",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		normalizedCategory := models.NormalizeCategory(ruleCategory)
 		rule := &models.CategoryRule{
 			Pattern:  rulePattern,
-			Category: ruleCategory,
+			Category: normalizedCategory,
 		}
 
 		if err := models.CreateRule(database, rule); err != nil {
 			return fmt.Errorf("failed to create rule: %w", err)
 		}
 
-		fmt.Fprintf(cmd.OutOrStdout(), "Rule added: matches '%s' -> '%s'\n", rulePattern, ruleCategory)
+		fmt.Fprintf(cmd.OutOrStdout(), "Rule added: matches '%s' -> '%s'\n", rulePattern, normalizedCategory)
 		return nil
 	},
 }

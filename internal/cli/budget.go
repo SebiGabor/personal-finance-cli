@@ -22,8 +22,9 @@ var budgetAddCmd = &cobra.Command{
 	Example: "finance budget add --category Food --amount 500",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Get values locally
-		category, _ := cmd.Flags().GetString("category")
+		catRaw, _ := cmd.Flags().GetString("category") // Rename to catRaw
 		amount, _ := cmd.Flags().GetFloat64("amount")
+		category := models.NormalizeCategory(catRaw)
 
 		b := &models.Budget{
 			Category: category,
